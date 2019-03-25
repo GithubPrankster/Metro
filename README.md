@@ -4,6 +4,9 @@
 
 ![Example](https://cdn.discordapp.com/attachments/380799075538305025/559538753752793088/unknown.png)
 
+# Warning
+Assets included are only for testing purposes.
+
 # Libraries used
 * GLFW
 
