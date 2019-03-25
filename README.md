@@ -2,6 +2,8 @@
 
 **The Metro Renderer is an improvement upon the previous OpenGL Renderer pkGL by spreading functions across headers and making importing assets easier. Starting things up is easier than ever. A few lines and you're good to go.**
 
+![Example](https://cdn.discordapp.com/attachments/380799075538305025/559538753752793088/unknown.png)
+
 # Libraries used
 * GLFW
 
