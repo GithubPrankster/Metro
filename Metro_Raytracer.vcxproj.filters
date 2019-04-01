@@ -32,5 +32,11 @@
     <ClInclude Include="headers\windowManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\meshHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

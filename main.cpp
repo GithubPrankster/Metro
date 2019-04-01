@@ -26,13 +26,20 @@ int main() {
 
 	Shader basicShader("shaders/basic.vs", "shaders/basic.fs");
 	Shader basicLight("shaders/light.vs", "shaders/light.fs");
+	Shader basicCube("shaders/cube.vs", "shaders/cube.fs");
 
 	//Basic textures
 	Texture planks("textures/woodplank.png", GL_RGBA, GL_NEAREST);
 	Texture floorTex("textures/woodfloor.png", GL_RGBA, GL_NEAREST);
 	Texture bricks("textures/brickwaller.png", GL_RGBA, GL_NEAREST);
 	Texture wall("textures/wallwood.png", GL_RGBA, GL_NEAREST);
-	//Texture bricks("textures/brickwaller.png", GL_RGBA, GL_NEAREST);
+	
+	std::vector<const char*> faces
+	{
+		"textures/cubemap/clouds1_east.png", "textures/cubemap/clouds1_west.png", "textures/cubemap/clouds1_up.png",
+		"textures/cubemap/clouds1_down.png", "textures/cubemap/clouds1_north.png", "textures/cubemap/clouds1_south.png"
+	};
+	Texture skyMap(faces, GL_RGBA, GL_LINEAR);
 
 	//Light meshes (can be changed for interesting results!)
 	Mesh lightObj("models/areaLight.obj");
@@ -56,13 +63,19 @@ int main() {
 
 	//Room
 	mainWindow.mainScene.addObject(Object("models/room.obj", wall, &basicShader));
+
+	//Reflective Cube
+	mainWindow.mainScene.addRefObject(reflectiveObject("models/cube.obj", skyMap, &basicCube));
+	mainWindow.mainScene.refObjects[0].reflectionMap = Texture("textures/baseTex.png", GL_RGBA, GL_LINEAR);
+	mainWindow.mainScene.refObjects[0].tint = glm::vec3(0.7, 0.9, 0.7);
+
 	//Lights
 	mainWindow.mainScene.addLight(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.4f, 0.5f, 0.2f), 0.4f, lightObj, &basicLight));
 
 	mainWindow.mainScene.addLight(Light(glm::vec3(-3.0f, 3.0f, -3.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
-	mainWindow.mainScene.addLight(Light(glm::vec3(2.0f, 0.5f, -4.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
-	mainWindow.mainScene.addLight(Light(glm::vec3(3.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
-	mainWindow.mainScene.addLight(Light(glm::vec3(-2.0f, 0.5f, 4.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
+	mainWindow.mainScene.addLight(Light(glm::vec3(1.0f, 0.5f, -4.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
+	mainWindow.mainScene.addLight(Light(glm::vec3(2.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
+	mainWindow.mainScene.addLight(Light(glm::vec3(-3.0f, 0.5f, 4.0f), glm::vec3(0.2f, 0.2f, 0.5f), 0.6f, light, &basicLight));
 
 	mainWindow.mainLoop(mainCam);
 	glfwTerminate();

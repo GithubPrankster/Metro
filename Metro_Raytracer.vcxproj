@@ -131,7 +131,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="headers\meshHandler.h" />
     <ClInclude Include="headers\scene.h" />
+    <ClInclude Include="headers\vertex.h" />
     <ClInclude Include="headers\windowManager.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>

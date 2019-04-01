@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <unordered_map>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include "vertex.h"
@@ -21,109 +22,59 @@ public:
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path)) {
 			throw std::runtime_error(err);
 		}
+
+		std::unordered_map<vertex, unsigned int> uniqueVerts = {};
+
 		for (const auto& shape : shapes) {
-			for (size_t index = 0; index < shape.mesh.indices.size(); index+= 3) {
+			for (const auto& index : shape.mesh.indices) {
 				vertex vert = {};
-				vertex vert1 = {};
-				vertex vert2 = {};
 
 				vert.pos = {
-					glm::vec3(attrib.vertices[3 * shape.mesh.indices[index].vertex_index + 0],
-					attrib.vertices[3 * shape.mesh.indices[index].vertex_index + 1],
-					attrib.vertices[3 * shape.mesh.indices[index].vertex_index + 2])
+					glm::vec3(attrib.vertices[3 * index.vertex_index + 0],
+					attrib.vertices[3 * index.vertex_index + 1],
+					attrib.vertices[3 * index.vertex_index + 2])
 				};
 
 				vert.normal = {
-					glm::vec3(attrib.normals[3 * shape.mesh.indices[index].normal_index + 0],
-					attrib.normals[3 * shape.mesh.indices[index].normal_index + 1],
-					attrib.normals[3 * shape.mesh.indices[index].normal_index + 2])
+					glm::vec3(attrib.normals[3 * index.normal_index + 0],
+					attrib.normals[3 * index.normal_index + 1],
+					attrib.normals[3 * index.normal_index + 2])
 				};
 
 				vert.tex = {
-					glm::vec2(attrib.texcoords[2 * shape.mesh.indices[index].texcoord_index + 0],
-					attrib.texcoords[2 * shape.mesh.indices[index].texcoord_index + 1])
+					glm::vec2(attrib.texcoords[2 * index.texcoord_index + 0],
+					attrib.texcoords[2 * index.texcoord_index + 1])
 				};
 
+				if (uniqueVerts.count(vert) == 0) {
+					uniqueVerts[vert] = static_cast<unsigned int>(vertices.size());
+					vertices.push_back(vert);
+				}
 
-				vert1.pos = {
-					glm::vec3(attrib.vertices[3 * shape.mesh.indices[index + 1].vertex_index + 0],
-					attrib.vertices[3 * shape.mesh.indices[index + 1].vertex_index + 1],
-					attrib.vertices[3 * shape.mesh.indices[index + 1].vertex_index + 2])
-				};
-
-				vert1.normal = {
-					glm::vec3(attrib.normals[3 * shape.mesh.indices[index + 1].normal_index + 0],
-					attrib.normals[3 * shape.mesh.indices[index + 1].normal_index + 1],
-					attrib.normals[3 * shape.mesh.indices[index + 1].normal_index + 2])
-				};
-
-				vert1.tex = {
-					glm::vec2(attrib.texcoords[2 * shape.mesh.indices[index + 1].texcoord_index + 0],
-					attrib.texcoords[2 * shape.mesh.indices[index + 1].texcoord_index + 1])
-				};
-
-
-				vert2.pos = {
-					glm::vec3(attrib.vertices[3 * shape.mesh.indices[index + 2].vertex_index + 0],
-					attrib.vertices[3 * shape.mesh.indices[index + 2].vertex_index + 1],
-					attrib.vertices[3 * shape.mesh.indices[index + 2].vertex_index + 2])
-				};
-
-				vert2.normal = {
-					glm::vec3(attrib.normals[3 * shape.mesh.indices[index + 2].normal_index + 0],
-					attrib.normals[3 * shape.mesh.indices[index + 2].normal_index + 1],
-					attrib.normals[3 * shape.mesh.indices[index + 2].normal_index + 2])
-				};
-
-				vert2.tex = {
-					glm::vec2(attrib.texcoords[2 * shape.mesh.indices[index + 2].texcoord_index + 0],
-					attrib.texcoords[2 * shape.mesh.indices[index + 2].texcoord_index + 1])
-				};
-
-				glm::vec3 firstEdge = vert1.pos - vert.pos;
-				glm::vec3 secondEdge = vert2.pos - vert.pos;
-
-				float deltaU = vert1.tex.x - vert.tex.x;
-				float deltaV = vert1.tex.y - vert.tex.y;
-				float deltaU1 = vert2.tex.x - vert.tex.x;
-				float deltaV1 = vert2.tex.y - vert.tex.y;
-
-				float f = 1.0f / (deltaU * deltaV1 - deltaU1 * deltaV);
-
-				glm::vec3 tangent, biTangent;
-
-				tangent.x = f * (deltaV1 * firstEdge.x - deltaV * secondEdge.x);
-				tangent.y = f * (deltaV1 * firstEdge.y - deltaV * secondEdge.y);
-				tangent.z = f * (deltaV1 * firstEdge.z - deltaV * secondEdge.z);
-				tangent = glm::normalize(tangent);
-
-				vert.tangent = tangent, vert1.tangent = tangent, vert2.tangent = tangent;
-
-				vertices.push_back(vert);
-				vertices.push_back(vert1);
-				vertices.push_back(vert2);
+				indices.push_back(uniqueVerts[vert]);
 			}
 		}
 
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
+		glGenBuffers(1, &EBO);
 
 		glBindVertexArray(VAO);
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 		glEnableVertexAttribArray(2);
-
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
-		glEnableVertexAttribArray(3);
 
 		glBindVertexArray(0);
 
@@ -133,15 +84,18 @@ public:
 	//Render mesh.
 	void render() {
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	}
-	//Dispose of VAO and VBO.
+	//Dispose of the stuff.
 	void terminator() {
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &EBO);
 	}
 private:
-	unsigned int VBO, VAO;
+	unsigned int VBO, VAO, EBO;
 	std::vector<vertex> vertices;
+	std::vector<unsigned int> indices;
 };
 #endif

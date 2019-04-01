@@ -19,6 +19,18 @@ struct Object {
 	}
 };
 
+struct reflectiveObject {
+	Mesh mesh;
+	Texture cubeTexture, reflectionMap;
+	Shader *usedShader;
+	glm::vec3 tint = glm::vec3(1.0f);
+	float shininess = 4.0;
+	reflectiveObject(const char* meshFile, Texture initialTex, Shader* shade) : usedShader(shade) {
+		mesh = Mesh(meshFile);
+		cubeTexture = initialTex;
+	}
+};
+
 struct Light {
 	glm::vec3 position;
 	glm::vec3 color;
@@ -30,10 +42,14 @@ struct Light {
 
 struct Scene {
 	std::vector<Object> objects;
+	std::vector<reflectiveObject> refObjects;
 	std::vector<Light> lights;
 
 	void addObject(Object obj) {
 		objects.push_back(obj);
+	}
+	void addRefObject(reflectiveObject obj) {
+		refObjects.push_back(obj);
 	}
 	void addLight(Light light) {
 		lights.push_back(light);
@@ -64,6 +80,27 @@ struct Scene {
 
 			obj.mesh.render();
 		}
+		for (auto refObj : refObjects) {
+			refObj.usedShader->use();
+			refObj.usedShader->setMat4("view", cam.view);
+			refObj.usedShader->setMat4("proj", cam.proj);
+			refObj.usedShader->setVec3("camPos", cam.position);
+			refObj.usedShader->setMat4("model", refObj.mesh.mat);
+			refObj.usedShader->setVec3("tint", refObj.tint);
+			//refObj.usedShader->setFloat("shininess", refObj.shininess);
+
+			textureBind(refObj.cubeTexture.textureId, 0, true);
+			textureBind(refObj.reflectionMap.textureId, 0);
+
+			refObj.usedShader->setInt("lightNum", lights.size());
+			for (int i = 0; i < lights.size(); i++) {
+				refObj.usedShader->setVec3("lightPos[" + std::to_string(i) + "]", lights[i].position);
+				refObj.usedShader->setVec3("lightColor[" + std::to_string(i) + "]", lights[i].color);
+				refObj.usedShader->setFloat("lightIntensity[" + std::to_string(i) + "]", lights[i].intensity);
+			}
+
+			refObj.mesh.render();
+		}
 		for (auto light : lights) {
 			light.lightShader->use();
 			light.lightShader->setMat4("proj", cam.proj);
@@ -82,6 +119,11 @@ struct Scene {
 				tex.terminator();
 			}
 			obj.mesh.terminator();
+		}
+		for (auto refObj : refObjects) {
+			refObj.cubeTexture.terminator();
+			refObj.reflectionMap.terminator();
+			refObj.mesh.terminator();
 		}
 		for (auto light : lights) {
 			light.worldRepresent.terminator();

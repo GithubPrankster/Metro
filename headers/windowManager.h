@@ -43,18 +43,20 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		scrWidth = width, scrHeight = height, scrSamples = samples;
 	}
 	void mainLoop(Camera cam) {
 		while (!glfwWindowShouldClose(window)) {
 			delta.calculateDelta(glfwGetTime());
+			std::cout << delta.deltaTime << std::endl;
 			inputHandle(window, &cam, delta.deltaTime);
 
 			glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			std::cout << cam.position.x << " " << cam.position.y << " " << cam.position.z << std::endl;
+			
 			cam.calculateView();
 			mainScene.render(cam);
 

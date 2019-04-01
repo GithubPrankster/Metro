@@ -38,6 +38,33 @@ public:
 		}
 		stbi_image_free(data);
 	}
+	Texture(std::vector<const char*> names, GLenum rgbType, GLenum filterSpace) {
+		stbi_set_flip_vertically_on_load(false);
+
+		glGenTextures(1, &textureId);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+
+		int width, height, nrChannels;
+		for (int i = 0; i < names.size(); i++) {
+			unsigned char *data = stbi_load(names[i], &width, &height, &nrChannels, 4);
+			if (data)
+			{
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, rgbType, width, height, 0, rgbType, GL_UNSIGNED_BYTE, data);
+			}
+			else
+			{
+				std::cout << "The textureHandler did not appreciate this data screw-ery with "<< names[i] << std::endl;
+			}
+			stbi_image_free(data);
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, filterSpace);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, filterSpace);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		stbi_set_flip_vertically_on_load(true);
+	}
 	Texture() = default;
 	void terminator() {
 		glDeleteTextures(1, &textureId);
@@ -46,9 +73,14 @@ public:
 
 #endif
 //Leave as 0 if no texture.
-void textureBind(unsigned int diffuse, int currentTexture) {
+void textureBind(unsigned int diffuse, int currentTexture, bool cubemap = false) {
 	glActiveTexture(GL_TEXTURE0 + currentTexture);
-	glBindTexture(GL_TEXTURE_2D, diffuse);
+	if (!cubemap) {
+		glBindTexture(GL_TEXTURE_2D, diffuse);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_CUBE_MAP, diffuse);
+	}	
 }
 //Create a cool icon and assign it.
 void iconAssign(const char* path, GLFWwindow* window) {
