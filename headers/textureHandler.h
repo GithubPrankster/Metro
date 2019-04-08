@@ -71,7 +71,6 @@ public:
 	}
 };
 
-#endif
 //Leave as 0 if no texture.
 void textureBind(unsigned int diffuse, int currentTexture, bool cubemap = false) {
 	glActiveTexture(GL_TEXTURE0 + currentTexture);
@@ -80,7 +79,7 @@ void textureBind(unsigned int diffuse, int currentTexture, bool cubemap = false)
 	}
 	else {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, diffuse);
-	}	
+	}
 }
 //Create a cool icon and assign it.
 void iconAssign(const char* path, GLFWwindow* window) {
@@ -88,9 +87,12 @@ void iconAssign(const char* path, GLFWwindow* window) {
 		stbi_set_flip_vertically_on_load(true);
 	}
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
 	GLFWimage img;
 	img.width = width, img.height = height, img.pixels = data;
 	stbi_image_free(data);
 	glfwSetWindowIcon(window, 1, &img);
 }
+
+#endif
+

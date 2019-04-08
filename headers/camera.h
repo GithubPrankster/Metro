@@ -1,25 +1,30 @@
-double lastX, lastY;
-bool firstMouse = true;
-float yaw = -90.0f;	
-float pitch = 0.0f;
+#ifndef CAMERA_H_INCLUDED
+#define CAMERA_H_INCLUDED
 
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/constants.hpp>
 
-void setStartCursorPos(int scrWidth, int scrHeight) {
-	lastX = scrWidth / 2.0, lastY = scrHeight / 2.0;
-}
+extern double lastX, lastY;
+extern bool firstMouse;
+extern float yaw;
+extern float pitch;
+
+extern glm::vec3 cameraFront;
+extern glm::vec3 cameraUp;
+
+void setStartCursorPos(int scrWidth, int scrHeight);
 
 struct Camera {
 	glm::vec3 position;
 	glm::mat4 proj, view;
 	//float constY;
-	Camera(float fov, int scrWidth, int scrHeight) {
-		proj = glm::perspective(fov, (float)scrWidth / (float)scrHeight, 0.1f, 1000.0f);
-		
-	}
-
-	void calculateView() {
-		view = glm::lookAt(position, position + cameraFront, cameraUp);
-	}
+	Camera();
+	Camera(float fov, int scrWidth, int scrHeight);
+	void calculateView();
 };
+
+#endif

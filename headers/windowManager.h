@@ -46,8 +46,10 @@ public:
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		scrWidth = width, scrHeight = height, scrSamples = samples;
+		
 	}
 	void mainLoop(Camera cam) {
+
 		while (!glfwWindowShouldClose(window)) {
 			delta.calculateDelta(glfwGetTime());
 			std::cout << delta.deltaTime << std::endl;
@@ -112,15 +114,20 @@ void inputHandle(GLFWwindow* window, Camera* cam, float delta) {
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	if (firstMouse)
 	{
-		lastX = xpos, lastY = ypos;
+		lastX = xpos;
+		lastY = ypos;
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX, yoffset = lastY - ypos;
-	lastX = xpos, lastY = ypos;
+	double xoffset = xpos - lastX;
+	double yoffset = lastY - ypos;
 
-	float sensitivity = 0.06;
-	xoffset *= sensitivity, yoffset *= sensitivity;
+	lastX = xpos;
+	lastY = ypos;
+
+	double sensitivity = 0.06;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
 
 	yaw += xoffset;
 	pitch += yoffset;
